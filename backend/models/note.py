@@ -48,6 +48,7 @@ class Note(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
 
     # 关联
+    user = relationship("User", back_populates="notes")
     tags = relationship("Tag", secondary=note_tags, back_populates="notes")
     todos = relationship("Todo", back_populates="note", cascade="all, delete-orphan")
 

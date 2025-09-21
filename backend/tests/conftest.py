@@ -15,6 +15,7 @@ from sqlalchemy.pool import StaticPool
 from main import app
 from database.base import Base
 from database import get_db
+from models.user import User
 from models.note import Note, Todo, Tag, NoteVersion
 
 # 测试数据库配置 - 使用内存数据库
