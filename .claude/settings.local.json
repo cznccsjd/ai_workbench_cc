@@ -10,7 +10,15 @@
       "Bash(pip install:*)",
       "Bash(venv\\Scripts\\activate)",
       "Bash(./venv/Scripts/pip:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(./venv/Scripts/python:*)",
+      "Bash(npx:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run)",
+      "Bash(find:*)",
+      "Bash(xargs:*)",
+      "Bash(chcp:*)",
+      "Bash(PYTHONIOENCODING=utf-8 ./venv/Scripts/python:*)"
     ],
     "deny": [],
     "ask": []

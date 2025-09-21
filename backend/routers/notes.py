@@ -1,7 +1,5 @@
-/**
- * 记事本相关路由
- * 提供笔记的CRUD操作、AI整理、Todo提取等功能
- */
+# 记事本相关路由
+# 提供笔记的CRUD操作、AI整理、Todo提取等功能
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session

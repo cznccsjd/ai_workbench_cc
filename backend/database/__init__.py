@@ -1,6 +1,4 @@
-/**
- * 数据库模块初始化
- */
+# 数据库模块初始化
 
 from .base import Base, init_db, get_db
 

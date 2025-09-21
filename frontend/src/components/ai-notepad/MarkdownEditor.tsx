@@ -169,7 +169,7 @@ export function MarkdownEditor({
             className="px-2 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 font-mono"
             title="行内代码"
           >
-            </>
+            <code></code>
           </button>
 
           <button

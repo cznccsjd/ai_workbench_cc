@@ -1,7 +1,7 @@
-/**
- * 笔记服务
- * 提供笔记相关的业务逻辑
- */
+#
+# 笔记服务
+# 提供笔记相关的业务逻辑
+#
 
 import logging
 from sqlalchemy.orm import Session

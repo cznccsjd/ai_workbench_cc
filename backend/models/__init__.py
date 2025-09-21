@@ -1,6 +1,6 @@
-/**
- * 模型模块初始化
- */
+#
+# 模型模块初始化
+#
 
 from .note import Note, Todo, Tag, NoteVersion, note_tags
 

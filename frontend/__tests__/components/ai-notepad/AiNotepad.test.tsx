@@ -1,12 +1,10 @@
-/**
- * AI记事本主组件测试
- * 测试AI记事本的所有功能，包括状态管理、用户交互、错误处理等
- */
+// AI记事本主组件测试
+// 测试AI记事本的所有功能，包括状态管理、用户交互、错误处理等
 
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AiNotepad } from '@/components/ai-notepad/AiNotepad';
-import { useNoteStore } from '@/stores/noteStore';
+import { useNoteStore, useFilteredNotes, useSelectedNote, useNoteTodos } from '@/stores/noteStore';
 
 // 模拟zustand store
 jest.mock('@/stores/noteStore', () => ({

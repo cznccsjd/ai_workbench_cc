@@ -1,6 +1,6 @@
-/**
- * 数据库基础配置
- */
+#
+# 数据库基础配置
+#
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base

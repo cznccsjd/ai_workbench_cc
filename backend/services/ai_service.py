@@ -1,7 +1,7 @@
-/**
- * AI服务
- * 提供AI智能整理、Todo提取等功能
- */
+#
+# AI服务
+# 提供AI智能整理、Todo提取等功能
+#
 
 import logging
 from typing import List, Optional

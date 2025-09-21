@@ -7,10 +7,10 @@ from datetime import datetime
 import logging
 
 from config import settings
-from routers import auth, users, notes, ai, pomodoro, projects
-from utils.security import verify_token
-from middleware.logging import LoggingMiddleware
-from middleware.rate_limit import RateLimitMiddleware
+from routers import notes
+# from utils.security import verify_token
+# from middleware.logging import LoggingMiddleware
+# from middleware.rate_limit import RateLimitMiddleware
 
 # 配置日志
 logging.basicConfig(
@@ -58,14 +58,14 @@ async def lifespan(app: FastAPI):
         logger.error(f"Database connection failed: {str(e)}")
         raise
 
-    # 检查Redis连接
-    try:
-        from utils.redis_client import init_redis
-        await init_redis()
-        logger.info("Redis connection established")
-    except Exception as e:
-        logger.error(f"Redis connection failed: {str(e)}")
-        raise
+    # 检查Redis连接 (可选)
+    # try:
+    #     from utils.redis_client import init_redis
+    #     await init_redis()
+    #     logger.info("Redis connection established")
+    # except Exception as e:
+    #     logger.error(f"Redis connection failed: {str(e)}")
+    #     raise
 
     yield
 
@@ -90,18 +90,13 @@ app.add_middleware(
 )
 
 # 添加日志中间件
-app.add_middleware(LoggingMiddleware)
+# app.add_middleware(LoggingMiddleware)
 
 # 添加限流中间件
-app.add_middleware(RateLimitMiddleware, calls=100, period=60)
+# app.add_middleware(RateLimitMiddleware, calls=100, period=60)
 
 # 注册路由
-app.include_router(auth.router, prefix="/api/auth", tags=["认证"])
-app.include_router(users.router, prefix="/api/users", tags=["用户"])
 app.include_router(notes.router, prefix="/api/notes", tags=["记事本"])
-app.include_router(ai.router, prefix="/api/ai", tags=["AI服务"])
-app.include_router(pomodoro.router, prefix="/api/pomodoro", tags=["番茄钟"])
-app.include_router(projects.router, prefix="/api/projects", tags=["项目管理"])
 
 @app.get("/")
 async def root():

@@ -1,7 +1,7 @@
-/**
- * 记事本数据库模型
- * 定义笔记和Todo的数据结构
- */
+#
+# 记事本数据库模型
+# 定义笔记和Todo的数据结构
+#
 
 from sqlalchemy import Column, String, Text, Boolean, DateTime, Integer, ForeignKey, Table
 from sqlalchemy.orm import relationship

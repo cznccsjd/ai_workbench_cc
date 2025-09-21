@@ -1,7 +1,5 @@
-/**
- * 记事本API测试
- * 测试笔记相关的API端点，包括CRUD操作、AI整理、Todo提取等功能
- */
+# 记事本API测试
+# 测试笔记相关的API端点，包括CRUD操作、AI整理、Todo提取等功能
 
 import pytest
 import json

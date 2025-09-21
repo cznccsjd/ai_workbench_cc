@@ -1,7 +1,5 @@
-/**
- * Markdown编辑器组件测试
- * 测试Markdown编辑器的所有功能，包括编辑、预览、AI操作等
- */
+// Markdown编辑器组件测试
+// 测试Markdown编辑器的所有功能，包括编辑、预览、AI操作等
 
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

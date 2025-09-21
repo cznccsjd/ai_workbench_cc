@@ -1,7 +1,5 @@
-/**
- * AI记事本端到端测试
- * 使用Playwright测试完整的用户流程
- */
+// AI记事本端到端测试
+// 使用Playwright测试完整的用户流程
 
 import { test, expect, Page } from '@playwright/test';
 import { AIWorkbenchPage } from '../pages/AIWorkbenchPage';

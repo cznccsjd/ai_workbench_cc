@@ -1,7 +1,5 @@
-/**
- * AI工作台页面类
- * 封装AI工作台的主要页面元素和操作
- */
+// AI工作台页面类
+// 封装AI工作台的主要页面元素和操作
 
 import { Page, Locator, expect } from '@playwright/test';
 
