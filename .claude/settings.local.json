@@ -20,7 +20,13 @@
       "Bash(chcp:*)",
       "Bash(PYTHONIOENCODING=utf-8 ./venv/Scripts/python:*)",
       "Bash(C:\\Users\\zjlo0\\OneDrive\\Document\\workspace\\CascadeProjects\\ai_workbench_cc\\venv\\Scripts\\python:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(timeout:*)",
+      "Bash(venv/Scripts/activate)",
+      "Bash(venv/Scripts/pip install:*)",
+      "Bash(venv/Scripts/python:*)",
+      "Read(//c/Users/zjlo0/OneDrive/**)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

@@ -7,7 +7,7 @@ from datetime import datetime
 import logging
 
 from config import settings
-from routers import notes
+from routers import notes, chat
 # from utils.security import verify_token
 # from middleware.logging import LoggingMiddleware
 # from middleware.rate_limit import RateLimitMiddleware
@@ -81,6 +81,7 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(notes.router, prefix="/api/notes", tags=["记事本"])
+app.include_router(chat.router, prefix="/api/ai", tags=["AI对话"])
 
 @app.get("/")
 async def root():

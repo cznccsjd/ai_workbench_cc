@@ -1,10 +1,10 @@
 #
 # AI服务
-# 提供AI智能整理、Todo提取等功能
+# 提供AI智能整理、Todo提取、对话等功能
 #
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, AsyncGenerator
 from pydantic import BaseModel
 import httpx
 import json
@@ -30,6 +30,15 @@ class TodoExtractionResult(BaseModel):
     """Todo提取结果"""
     todos: List[ExtractedTodo]
     summary: str
+
+class AIModel(BaseModel):
+    """AI模型信息"""
+    id: str
+    name: str
+    provider: str
+    max_tokens: int
+    description: str
+    is_available: bool = True
 
 class AIService:
     """AI服务类"""
@@ -312,6 +321,161 @@ class AIService:
             if len(words) > max_length // 2:
                 return " ".join(words[:max_length // 2]) + "..."
             return content
+
+    async def chat_with_model(self, messages: List[Dict[str, Any]], model: str = "kimi-moonshot-v1-8k",
+                            temperature: float = 0.7, max_tokens: int = 2000) -> str:
+        """与AI模型进行对话"""
+        try:
+            logger.info(f"开始AI对话: model={model}, messages_count={len(messages)}")
+
+            # 准备消息格式
+            formatted_messages = []
+            for msg in messages:
+                formatted_messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", "")
+                })
+
+            # 根据模型选择API
+            if "kimi" in model.lower() or "moonshot" in model.lower():
+                response = await self._call_kimi_api(formatted_messages, model)
+            elif "gpt" in model.lower() or "openai" in model.lower():
+                response = await self._call_openai_api(formatted_messages, model)
+            else:
+                # 默认使用Kimi
+                response = await self._call_kimi_api(formatted_messages, "moonshot-v1-8k")
+
+            return response
+
+        except Exception as e:
+            logger.error(f"AI对话失败: {str(e)}")
+            return f"抱歉，我遇到了一些问题：{str(e)}"
+
+    async def chat_with_model_stream(self, messages: List[Dict[str, Any]], model: str = "kimi-moonshot-v1-8k",
+                                   temperature: float = 0.7, max_tokens: int = 2000) -> AsyncGenerator[str, None]:
+        """与AI模型进行流式对话"""
+        try:
+            logger.info(f"开始流式AI对话: model={model}")
+
+            # 准备消息格式
+            formatted_messages = []
+            for msg in messages:
+                formatted_messages.append({
+                    "role": msg.get("role", "user"),
+                    "content": msg.get("content", "")
+                })
+
+            # 流式调用Kimi API（示例实现）
+            if "kimi" in model.lower() or "moonshot" in model.lower():
+                async for chunk in self._call_kimi_api_stream(formatted_messages, model):
+                    yield chunk
+            else:
+                # 非流式调用，然后分块返回
+                response = await self.chat_with_model(formatted_messages, model, temperature, max_tokens)
+                # 简单分块模拟流式响应
+                words = response.split()
+                for i, word in enumerate(words):
+                    chunk = word + (" " if i < len(words) - 1 else "")
+                    yield chunk
+                    await asyncio.sleep(0.05)  # 模拟打字效果
+
+        except Exception as e:
+            logger.error(f"流式AI对话失败: {str(e)}")
+            yield f"抱歉，我遇到了一些问题：{str(e)}"
+
+    async def _call_kimi_api_stream(self, messages: List[dict], model: str = "moonshot-v1-8k") -> AsyncGenerator[str, None]:
+        """流式调用Kimi API"""
+        if not self.kimi_api_key:
+            logger.warning("Kimi API密钥未配置，使用模拟流式数据")
+            response = await self._get_mock_response(messages)
+            words = response.split()
+            for i, word in enumerate(words):
+                chunk = word + (" " if i < len(words) - 1 else "")
+                yield chunk
+                await asyncio.sleep(0.05)
+            return
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    "https://api.moonshot.cn/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.kimi_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": model,
+                        "messages": messages,
+                        "temperature": 0.7,
+                        "max_tokens": 2000,
+                        "stream": True  # 启用流式响应
+                    },
+                    timeout=None
+                )
+
+                if response.status_code != 200:
+                    logger.error(f"Kimi API流式调用失败: {response.status_code} - {response.text}")
+                    yield "抱歉，AI服务暂时不可用。"
+                    return
+
+                # 处理流式响应
+                async for line in response.aiter_lines():
+                    if line.startswith("data: "):
+                        data = line[6:]  # 移除 "data: " 前缀
+                        if data == "[DONE]":
+                            break
+
+                        try:
+                            chunk_data = json.loads(data)
+                            delta = chunk_data.get("choices", [{}])[0].get("delta", {})
+                            content = delta.get("content", "")
+                            if content:
+                                yield content
+                        except json.JSONDecodeError:
+                            continue
+
+        except Exception as e:
+            logger.error(f"流式调用Kimi API异常: {str(e)}")
+            yield f"抱歉，我遇到了一些问题：{str(e)}"
+
+    async def get_available_models(self) -> List[AIModel]:
+        """获取可用的AI模型列表"""
+        models = [
+            AIModel(
+                id="kimi-moonshot-v1-8k",
+                name="Kimi Moonshot v1 (8K)",
+                provider="kimi",
+                max_tokens=8000,
+                description="Moonshot AI 的 Kimi 模型，支持长文本处理",
+                is_available=bool(self.kimi_api_key)
+            ),
+            AIModel(
+                id="kimi-moonshot-v1-32k",
+                name="Kimi Moonshot v1 (32K)",
+                provider="kimi",
+                max_tokens=32000,
+                description="Moonshot AI 的 Kimi 模型，支持更长文本处理",
+                is_available=bool(self.kimi_api_key)
+            ),
+            AIModel(
+                id="gpt-3.5-turbo",
+                name="GPT-3.5 Turbo",
+                provider="openai",
+                max_tokens=4096,
+                description="OpenAI GPT-3.5 Turbo 模型",
+                is_available=bool(self.openai_api_key)
+            ),
+            AIModel(
+                id="gpt-4-turbo",
+                name="GPT-4 Turbo",
+                provider="openai",
+                max_tokens=128000,
+                description="OpenAI GPT-4 Turbo 模型",
+                is_available=bool(self.openai_api_key)
+            )
+        ]
+
+        return [model for model in models if model.is_available]
 
 # 创建服务实例
 ai_service = AIService()

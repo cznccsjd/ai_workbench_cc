@@ -1,5 +1,5 @@
 # 路由模块初始化
 
-from . import notes
+from . import notes, chat
 
-__all__ = ['notes']
+__all__ = ['notes', 'chat']
