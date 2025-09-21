@@ -18,7 +18,9 @@
       "Bash(find:*)",
       "Bash(xargs:*)",
       "Bash(chcp:*)",
-      "Bash(PYTHONIOENCODING=utf-8 ./venv/Scripts/python:*)"
+      "Bash(PYTHONIOENCODING=utf-8 ./venv/Scripts/python:*)",
+      "Bash(C:\\Users\\zjlo0\\OneDrive\\Document\\workspace\\CascadeProjects\\ai_workbench_cc\\venv\\Scripts\\python:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
