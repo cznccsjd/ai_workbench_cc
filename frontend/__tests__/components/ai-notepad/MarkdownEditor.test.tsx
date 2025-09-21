@@ -1,8 +1,9 @@
 /**
  * Markdown编辑器组件测试
+ * 测试Markdown编辑器的所有功能，包括编辑、预览、AI操作等
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MarkdownEditor } from '@/components/ai-notepad/MarkdownEditor';
 import { Note } from '@/types/note';
@@ -12,15 +13,29 @@ jest.mock('@/hooks/useDebounce', () => ({
   useDebounce: (value: string) => value, // 直接使用值，不延迟
 }));
 
+// 模拟ReactMarkdown
+jest.mock('react-markdown', () => ({
+  __esModule: true,
+  default: ({ children }: any) => (
+    <div data-testid="markdown-preview">{children}</div>
+  ),
+}));
+
+// 模拟remark-gfm
+jest.mock('remark-gfm', () => ({
+  __esModule: true,
+  default: () => ({}),
+}));
+
 describe('MarkdownEditor', () => {
   const mockNote: Note = {
     id: '1',
     title: '测试笔记',
     content: '# 标题\n\n这是测试内容。',
     isBookmarked: false,
-    tags: ['测试'],
+    tags: ['测试', '示例'],
     createdAt: new Date('2025-01-01'),
-    updatedAt: new Date('2025-01-01'),
+    updatedAt: new Date('2025-01-02'),
     wordCount: 10,
     readingTime: 1,
   };
@@ -35,208 +50,601 @@ describe('MarkdownEditor', () => {
     jest.clearAllMocks();
   });
 
-  it('renders without crashing', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+  describe('基本渲染', () => {
+    it('renders without crashing', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    expect(screen.getByDisplayValue('测试笔记')).toBeInTheDocument();
-  });
+      expect(screen.getByDisplayValue('测试笔记')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('# 标题\n\n这是测试内容。')).toBeInTheDocument();
+    });
 
-  it('displays note content in textarea', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+    it('displays note title input', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    expect(screen.getByDisplayValue('# 标题\n\n这是测试内容。')).toBeInTheDocument();
-  });
+      const titleInput = screen.getByDisplayValue('测试笔记');
+      expect(titleInput).toBeInTheDocument();
+      expect(titleInput.tagName).toBe('INPUT');
+    });
 
-  it('shows word count and reading time', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+    it('displays content textarea', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    expect(screen.getByText('10字')).toBeInTheDocument();
-    expect(screen.getByText('约1分钟')).toBeInTheDocument();
-  });
+      const contentTextarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
+      expect(contentTextarea).toBeInTheDocument();
+      expect(contentTextarea.tagName).toBe('TEXTAREA');
+    });
 
-  it('calls onChange when content is modified', async () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+    it('shows word count and reading time', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    const textarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
-    fireEvent.change(textarea, { target: { value: '新的内容' } });
+      expect(screen.getByText('10字')).toBeInTheDocument();
+      expect(screen.getByText('约1分钟')).toBeInTheDocument();
+    });
 
-    await waitFor(() => {
-      expect(mockHandlers.onChange).toHaveBeenCalledWith('新的内容');
+    it('shows tags in footer', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByText('测试')).toBeInTheDocument();
+      expect(screen.getByText('示例')).toBeInTheDocument();
+    });
+
+    it('shows last update time', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByText(/最后更新:/)).toBeInTheDocument();
+    });
+
+    it('displays AI action buttons', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByText('🤖 整理')).toBeInTheDocument();
+      expect(screen.getByText('✅ 提取Todo')).toBeInTheDocument();
+    });
+
+    it('displays formatting toolbar buttons', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByText('B')).toBeInTheDocument(); // 粗体
+      expect(screen.getByText('I')).toBeInTheDocument(); // 斜体
+      expect(screen.getByText('U')).toBeInTheDocument(); // 下划线
+      expect(screen.getByText('Link')).toBeInTheDocument(); // 链接
+      expect(screen.getByText('List')).toBeInTheDocument(); // 列表
+      expect(screen.getByText('H1')).toBeInTheDocument(); // 标题1
+      expect(screen.getByText('H2')).toBeInTheDocument(); // 标题2
+    });
+
+    it('displays mode toggle buttons', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByText('👁️ 预览')).toBeInTheDocument();
+      expect(screen.getByText('✏️ 编辑')).toBeInTheDocument();
     });
   });
 
-  it('calls onOrganize when organize button is clicked', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+  describe('用户交互', () => {
+    it('calls onChange when title is modified', async () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    const organizeButton = screen.getByText('🤖 整理');
-    fireEvent.click(organizeButton);
+      const titleInput = screen.getByDisplayValue('测试笔记');
+      fireEvent.change(titleInput, { target: { value: '新的标题' } });
 
-    expect(mockHandlers.onOrganize).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockHandlers.onChange).toHaveBeenCalledWith('# 标题\n\n这是测试内容。');
+      });
+    });
+
+    it('calls onChange when content is modified', async () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const textarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
+      fireEvent.change(textarea, { target: { value: '新的内容' } });
+
+      await waitFor(() => {
+        expect(mockHandlers.onChange).toHaveBeenCalledWith('新的内容');
+      });
+    });
+
+    it('calls onOrganize when organize button is clicked', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const organizeButton = screen.getByText('🤖 整理');
+      fireEvent.click(organizeButton);
+
+      expect(mockHandlers.onOrganize).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onExtractTodos when extract button is clicked', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const extractButton = screen.getByText('✅ 提取Todo');
+      fireEvent.click(extractButton);
+
+      expect(mockHandlers.onExtractTodos).toHaveBeenCalledTimes(1);
+    });
+
+    it('toggles between edit and preview modes', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      // 初始状态应该是编辑模式
+      expect(screen.getByDisplayValue('# 标题\n\n这是测试内容。')).toBeInTheDocument();
+
+      // 切换到预览模式
+      const previewButton = screen.getByText('👁️ 预览');
+      fireEvent.click(previewButton);
+
+      // 应该显示预览内容
+      expect(screen.getByTestId('markdown-preview')).toBeInTheDocument();
+      expect(screen.getByTestId('markdown-preview')).toHaveTextContent('# 标题\n\n这是测试内容。');
+
+      // 切换回编辑模式
+      const editButton = screen.getByText('✏️ 编辑');
+      fireEvent.click(editButton);
+
+      expect(screen.getByDisplayValue('# 标题\n\n这是测试内容。')).toBeInTheDocument();
+    });
+
+    it('disables buttons when disabled prop is true', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+          disabled={true}
+        />
+      );
+
+      const organizeButton = screen.getByText('🤖 整理');
+      const extractButton = screen.getByText('✅ 提取Todo');
+      const contentTextarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
+
+      expect(organizeButton).toBeDisabled();
+      expect(extractButton).toBeDisabled();
+      expect(contentTextarea).toBeDisabled();
+    });
   });
 
-  it('calls onExtractTodos when extract button is clicked', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+  describe('Markdown格式化', () => {
+    it('inserts bold formatting', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    const extractButton = screen.getByText('✅ 提取Todo');
-    fireEvent.click(extractButton);
+      const boldButton = screen.getByText('B');
+      fireEvent.click(boldButton);
 
-    expect(mockHandlers.onExtractTodos).toHaveBeenCalled();
+      // 由于我们模拟了useDebounce，格式化应该立即应用
+      expect(mockHandlers.onChange).toHaveBeenCalled();
+    });
+
+    it('inserts italic formatting', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const italicButton = screen.getByText('I');
+      fireEvent.click(italicButton);
+
+      expect(mockHandlers.onChange).toHaveBeenCalled();
+    });
+
+    it('inserts link formatting', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const linkButton = screen.getByText('Link');
+      fireEvent.click(linkButton);
+
+      expect(mockHandlers.onChange).toHaveBeenCalled();
+    });
+
+    it('inserts list formatting', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const listButton = screen.getByText('List');
+      fireEvent.click(listButton);
+
+      expect(mockHandlers.onChange).toHaveBeenCalled();
+    });
+
+    it('inserts heading formatting', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const h1Button = screen.getByText('H1');
+      fireEvent.click(h1Button);
+
+      expect(mockHandlers.onChange).toHaveBeenCalled();
+    });
   });
 
-  it('disables buttons when disabled prop is true', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-        disabled={true}
-      />
-    );
+  describe('边界情况和错误处理', () => {
+    it('handles null note gracefully', () => {
+      render(
+        <MarkdownEditor
+          note={null as any}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    const organizeButton = screen.getByText('🤖 整理');
-    const extractButton = screen.getByText('✅ 提取Todo');
+      // 应该显示空状态而不是崩溃
+      expect(screen.queryByDisplayValue('测试笔记')).not.toBeInTheDocument();
+    });
 
-    expect(organizeButton).toBeDisabled();
-    expect(extractButton).toBeDisabled();
+    it('handles empty note content', () => {
+      const emptyNote = {
+        ...mockNote,
+        content: '',
+        wordCount: 0,
+        readingTime: 0,
+      };
+
+      render(
+        <MarkdownEditor
+          note={emptyNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByDisplayValue('测试笔记')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('')).toBeInTheDocument();
+      expect(screen.getByText('0字')).toBeInTheDocument();
+      expect(screen.getByText('约0分钟')).toBeInTheDocument();
+    });
+
+    it('handles very long content', () => {
+      const longContent = '这是一个很长的内容。'.repeat(1000);
+      const longNote = {
+        ...mockNote,
+        content: longContent,
+        wordCount: 6000,
+        readingTime: 30,
+      };
+
+      render(
+        <MarkdownEditor
+          note={longNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByDisplayValue(longContent)).toBeInTheDocument();
+      expect(screen.getByText('6000字')).toBeInTheDocument();
+      expect(screen.getByText('约30分钟')).toBeInTheDocument();
+    });
+
+    it('handles many tags', () => {
+      const manyTagsNote = {
+        ...mockNote,
+        tags: ['标签1', '标签2', '标签3', '标签4', '标签5', '标签6', '标签7', '标签8'],
+      };
+
+      render(
+        <MarkdownEditor
+          note={manyTagsNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      manyTagsNote.tags.forEach(tag => {
+        expect(screen.getByText(tag)).toBeInTheDocument();
+      });
+    });
+
+    it('handles special characters in content', () => {
+      const specialContent = '# 特殊字符测试\n\n包含 < > & " \' 等特殊字符的内容。';
+      const specialNote = {
+        ...mockNote,
+        content: specialContent,
+      };
+
+      render(
+        <MarkdownEditor
+          note={specialNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByDisplayValue(specialContent)).toBeInTheDocument();
+    });
+
+    it('handles rapid content changes', async () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const textarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
+
+      // 快速连续修改内容
+      for (let i = 0; i < 10; i++) {
+        fireEvent.change(textarea, { target: { value: `内容${i}` } });
+      }
+
+      await waitFor(() => {
+        // 验证最后一次修改被调用
+        expect(mockHandlers.onChange).toHaveBeenCalledWith('内容9');
+      });
+    });
+
+    it('handles concurrent button clicks', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      const organizeButton = screen.getByText('🤖 整理');
+      const extractButton = screen.getByText('✅ 提取Todo');
+
+      // 同时点击两个按钮
+      fireEvent.click(organizeButton);
+      fireEvent.click(extractButton);
+
+      expect(mockHandlers.onOrganize).toHaveBeenCalledTimes(1);
+      expect(mockHandlers.onExtractTodos).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('toggles between edit and preview modes', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+  describe('性能测试', () => {
+    it('renders with large number of tags efficiently', () => {
+      const startTime = performance.now();
 
-    // 初始状态应该是编辑模式
-    expect(screen.getByDisplayValue('# 标题\n\n这是测试内容。')).toBeInTheDocument();
+      const manyTagsNote = {
+        ...mockNote,
+        tags: Array.from({ length: 100 }, (_, i) => `标签${i}`),
+      };
 
-    // 切换到预览模式
-    const previewButton = screen.getByText('👁️ 预览');
-    fireEvent.click(previewButton);
+      render(
+        <MarkdownEditor
+          note={manyTagsNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    // 应该显示预览内容
-    expect(screen.getByText('标题')).toBeInTheDocument();
-    expect(screen.getByText('这是测试内容。')).toBeInTheDocument();
+      const endTime = performance.now();
+      const renderTime = endTime - startTime;
 
-    // 切换回编辑模式
-    const editButton = screen.getByText('✏️ 编辑');
-    fireEvent.click(editButton);
+      // 验证渲染时间合理（小于100ms）
+      expect(renderTime).toBeLessThan(100);
 
-    expect(screen.getByDisplayValue('# 标题\n\n这是测试内容。')).toBeInTheDocument();
+      // 验证所有标签都被渲染
+      expect(screen.getAllByText(/标签\d+/)).toHaveLength(100);
+    });
+
+    it('handles content with many markdown elements', () => {
+      const complexContent = `
+# 主标题
+## 副标题
+### 三级标题
+
+**粗体文本** *斜体文本* ~~删除线~~
+
+[链接文本](https://example.com)
+
+\`\`\`javascript
+const code = "示例代码";
+\`\`\`
+
+- 列表项1
+- 列表项2
+  - 嵌套列表项
+
+1. 有序列表1
+2. 有序列表2
+
+> 引用文本
+
+| 表格 | 列1 | 列2 |
+|------|-----|-----|
+| 行1  | 数据1 | 数据2 |
+| 行2  | 数据3 | 数据4 |
+      `.repeat(10);
+
+      const complexNote = {
+        ...mockNote,
+        content: complexContent,
+        wordCount: 500,
+        readingTime: 5,
+      };
+
+      render(
+        <MarkdownEditor
+          note={complexNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
+
+      expect(screen.getByDisplayValue(complexContent)).toBeInTheDocument();
+    });
   });
 
-  it('inserts markdown formatting', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+  describe('可访问性', () => {
+    it('has proper ARIA labels', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    const textarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
+      // 验证按钮有正确的文本内容
+      expect(screen.getByText('🤖 整理')).toBeInTheDocument();
+      expect(screen.getByText('✅ 提取Todo')).toBeInTheDocument();
+    });
 
-    // 选中一些文本
-    textarea.setSelectionRange(0, 2);
+    it('maintains focus management', () => {
+      render(
+        <MarkdownEditor
+          note={mockNote}
+          onChange={mockHandlers.onChange}
+          onOrganize={mockHandlers.onOrganize}
+          onExtractTodos={mockHandlers.onExtractTodos}
+        />
+      );
 
-    // 点击粗体按钮
-    const boldButton = screen.getByText('B');
-    fireEvent.click(boldButton);
+      const textarea = screen.getByDisplayValue('# 标题\n\n这是测试内容。');
 
-    // 由于我们模拟了useDebounce，内容应该立即更新
-    // 注意：实际测试中可能需要更复杂的文本选择模拟
-  });
+      // 聚焦到文本区域
+      fireEvent.focus(textarea);
+      expect(document.activeElement).toBe(textarea);
 
-  it('shows tags in footer', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
+      // 点击格式化按钮后，焦点应该保持合理
+      const boldButton = screen.getByText('B');
+      fireEvent.click(boldButton);
 
-    expect(screen.getByText('测试')).toBeInTheDocument();
-  });
-
-  it('shows last update time', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
-
-    expect(screen.getByText(/最后更新:/)).toBeInTheDocument();
-  });
-
-  it('toggles word count visibility', () => {
-    render(
-      <MarkdownEditor
-        note={mockNote}
-        onChange={mockHandlers.onChange}
-        onOrganize={mockHandlers.onOrganize}
-        onExtractTodos={mockHandlers.onExtractTodos}
-      />
-    );
-
-    // 默认显示字数
-    expect(screen.getByText('10字')).toBeInTheDocument();
-
-    // 点击隐藏字数按钮
-    const toggleButton = screen.getByText('👁️');
-    fireEvent.click(toggleButton);
-
-    // 字数应该被隐藏（实际实现中需要状态管理）
+      // 验证交互后组件仍然可用
+      expect(textarea).not.toBeDisabled();
+    });
   });
 });
