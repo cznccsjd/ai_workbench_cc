@@ -30,7 +30,12 @@
       "Bash(git rebase:*)",
       "Bash(dir:*)",
       "Bash(npm run build)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git branch:*)",
+      "Read(//c/**)",
+      "Bash(npm run dev)",
+      "Bash(npm run test:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

@@ -30,6 +30,7 @@ class User(Base):
     notes = relationship("Note", back_populates="user")
     pomodoro_sessions = relationship("PomodoroSession", back_populates="user")
     pomodoro_settings = relationship("PomodoroSettings", back_populates="user", uselist=False)
+    boards = relationship("Board", back_populates="user")
 
     def __repr__(self):
         return f"<User(id='{self.id}', username='{self.username}', email='{self.email}')>"
