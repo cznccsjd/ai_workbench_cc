@@ -54,7 +54,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/kanban" className="group">
+          <Link href="/boards" className="group">
             <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
               <div className="text-4xl mb-4">📋</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
