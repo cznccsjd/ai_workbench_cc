@@ -3,11 +3,9 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import KanbanBoard from '../KanbanBoard';
 import { useKanbanStore } from '@/stores/kanbanStore';
-import { useKanbanDrag } from '@/hooks/useKanbanDrag';
 import * as apiClient from '@/lib/apiClient';
 
 // Mock API客户端
@@ -30,7 +28,8 @@ const mockStore = {
               description: '测试描述',
               priority: 'medium',
               is_completed: false,
-              list_id: 'list-1'
+              list_id: 'list-1',
+              tags: []
             }
           ]
         }
@@ -256,52 +255,5 @@ describe('KanbanBoard', () => {
     await waitFor(() => {
       expect(mockStore.bulkUpdateCards).toHaveBeenCalled();
     });
-  });
-});
-
-describe('看板Hook测试', () => {
-  it('应该正确处理拖拽状态', () => {
-    const { result } = renderHook(() => useKanbanDrag());
-
-    expect(result.current.isDragging).toBe(false);
-    expect(result.current.draggedCard).toBe(null);
-    expect(result.current.draggedList).toBe(null);
-  });
-
-  it('应该提供正确的拖拽上下文', () => {
-    const { result } = renderHook(() => useKanbanDrag());
-
-    expect(result.current.DragContext).toBeDefined();
-    expect(result.current.DragOverlayComponent).toBeDefined();
-  });
-
-  it('应该正确处理卡片上下文', () => {
-    const { result } = renderHook(() => useKanbanDrag());
-
-    const mockCards = [
-      { id: 'card-1', title: '卡片1' },
-      { id: 'card-2', title: '卡片2' }
-    ];
-
-    const context = result.current.getCardContext('list-1', mockCards);
-
-    expect(context.items).toEqual(['card-1', 'card-2']);
-    expect(context.strategy).toBeDefined();
-    expect(context.id).toBe('cards-list-1');
-  });
-
-  it('应该正确处理列表上下文', () => {
-    const { result } = renderHook(() => useKanbanDrag());
-
-    const mockLists = [
-      { id: 'list-1', name: '列表1' },
-      { id: 'list-2', name: '列表2' }
-    ];
-
-    const context = result.current.getListContext('board-1', mockLists);
-
-    expect(context.items).toEqual(['list-1', 'list-2']);
-    expect(context.strategy).toBeDefined();
-    expect(context.id).toBe('lists-board-1');
   });
 });

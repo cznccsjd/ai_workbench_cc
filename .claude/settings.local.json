@@ -35,7 +35,9 @@
       "Read(//c/**)",
       "Bash(npm run dev)",
       "Bash(npm run test:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git fetch:*)",
+      "Bash(pytest:*)"
     ],
     "deny": [],
     "ask": []

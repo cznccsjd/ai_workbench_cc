@@ -7,17 +7,17 @@
 
 import { useState, useCallback } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { Board, List, Card } from '@/types/kanban';
+import { Board, Card } from '@/types/kanban';
 import ListColumn from './ListColumn';
 import CardModal from './CardModal';
 
 interface BoardViewProps {
   board: Board;
-  onListCreate: (listData: any) => void;
-  onListUpdate: (listId: string, listData: any) => void;
+  onListCreate: (listData: { board_id: string; name: string; position?: number }) => void;
+  onListUpdate: (listId: string, listData: { name?: string; description?: string; position?: number; is_archived?: boolean }) => void;
   onListDelete: (listId: string) => void;
-  onCardCreate: (listId: string, cardData: any) => void;
-  onCardUpdate: (cardId: string, cardData: any) => void;
+  onCardCreate: (listId: string, cardData: { list_id: string; title: string; description?: string; priority?: 'low' | 'medium' | 'high' | 'urgent' }) => void;
+  onCardUpdate: (cardId: string, cardData: { title?: string; description?: string; priority?: 'low' | 'medium' | 'high' | 'urgent'; is_completed?: boolean }) => void;
   onCardDelete: (cardId: string) => void;
   onCardMove: (cardId: string, targetListId: string, newPosition: number) => void;
 }
@@ -37,7 +37,7 @@ export default function BoardView({
   const [isAddingList, setIsAddingList] = useState(false);
   const [newListName, setNewListName] = useState('');
 
-  const [isDragging, setIsDragging] = useState(false);
+  // const [isDragging, setIsDragging] = useState(false);
 
   const handleCardClick = useCallback((card: Card) => {
     setSelectedCard(card);
@@ -49,7 +49,7 @@ export default function BoardView({
     setIsCardModalOpen(false);
   };
 
-  const handleCardSave = async (cardData: any) => {
+  const handleCardSave = async (cardData: { title?: string; description?: string; priority?: 'low' | 'medium' | 'high' | 'urgent'; is_completed?: boolean }) => {
     if (selectedCard) {
       await onCardUpdate(selectedCard.id, cardData);
     }
@@ -68,9 +68,8 @@ export default function BoardView({
   };
 
   return (
-    <DragContext>
-      <div className="flex-1 overflow-x-auto bg-gray-100 p-4">
-        <div className="flex gap-4 min-h-full">
+    <div className="flex-1 overflow-x-auto bg-gray-100 p-4">
+      <div className="flex gap-4 min-h-full">
           {board.lists?.map((list) => (
             <div key={list.id} className="flex-shrink-0">
               <ListColumn
@@ -145,9 +144,7 @@ export default function BoardView({
           onDelete={onCardDelete}
         />
 
-        {/* 拖拽遮罩 */}
-        <DragOverlayComponent />
       </div>
-    </DragContext>
+    </div>
   );
 }

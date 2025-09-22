@@ -8,8 +8,7 @@ import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { useKanbanStore } from '@/stores/kanbanStore';
 import ListColumn from './ListColumn';
-import KanbanHeader from './KanbanHeader';
-import KanbanSidebar from './KanbanSidebar';
+import BoardHeader from './BoardHeader';
 import CardModal from './CardModal';
 import BoardCreateModal from './BoardCreateModal';
 import { Board, Card, List, CardMoveRequest } from '@/types/kanban';
@@ -28,6 +27,13 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     updateCard,
     deleteCard,
     moveCard,
+    startDraggingCard,
+    startDraggingList,
+    endDragging,
+    rollbackDragOperation,
+    draggedCard,
+    draggedList,
+    isDragging,
     isLoading,
     error
   } = useKanbanStore();
@@ -202,18 +208,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="h-full flex flex-col bg-gray-50">
         {/* 头部 */}
-        <KanbanHeader
+        <BoardHeader
           board={currentBoard}
           onBoardEdit={() => setIsCreateModalOpen(true)}
         />
 
         <div className="flex-1 flex overflow-hidden">
-          {/* 侧边栏 */}
-          <KanbanSidebar
-            board={currentBoard}
-            onCardCreate={handleCardCreate}
-          />
-
           {/* 主内容区 - 列表容器 */}
           <div className="flex-1 overflow-x-auto">
             <div className="h-full flex items-start p-4 space-x-4">
