@@ -188,6 +188,23 @@ def create_test_todo():
     return _create_todo
 
 
+@pytest.fixture
+def create_test_user():
+    """创建测试用户的工厂函数"""
+    def _create_user(db_session, username="testuser", email="test@example.com", **kwargs):
+        user = User(
+            username=username,
+            email=email,
+            hashed_password="test_password_hash",
+            **kwargs
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+    return _create_user
+
+
 class AsyncMock(Mock):
     """异步模拟类"""
     async def __call__(self, *args, **kwargs):

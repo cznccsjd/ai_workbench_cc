@@ -26,7 +26,11 @@
       "Bash(venv/Scripts/pip install:*)",
       "Bash(venv/Scripts/python:*)",
       "Read(//c/Users/zjlo0/OneDrive/**)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git rebase:*)",
+      "Bash(dir:*)",
+      "Bash(npm run build)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
