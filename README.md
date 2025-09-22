@@ -7,7 +7,13 @@ AI Workbench is a next-generation productivity tool designed to integrate AI cap
 -   **AI-Powered Notepad**: Automatically organize your thoughts and extract tasks.
 -   **Multi-Model Chat**: Chat with Kimi and other large language models.
 -   **Pomodoro Timer**: Stay focused and manage your time effectively.
--   **Kanban Project Management**: Visualize your workflow with a Trello-like board.
+-   **Kanban Project Management**: Visualize your workflow with a Trello-like board system.
+    -   **Board Management**: Create and manage multiple project boards
+    -   **Drag & Drop**: Intuitive card and list reordering with @dnd-kit
+    -   **List Organization**: Customizable columns (To Do, In Progress, Done)
+    -   **Card Features**: Titles, descriptions, due dates, priority levels, and color labels
+    -   **Mobile Responsive**: Full touch support for mobile devices
+    -   **Real-time Sync**: Instant updates with backend synchronization
 -   **Theming System**: Customize the look and feel with multiple modern themes.
 
 ## Tech Stack
