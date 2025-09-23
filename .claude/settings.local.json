@@ -37,7 +37,9 @@
       "Bash(npm run test:*)",
       "Bash(curl:*)",
       "Bash(git fetch:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(git rm:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
