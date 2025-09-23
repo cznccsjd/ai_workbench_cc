@@ -55,7 +55,8 @@
       "Bash(sqlite3:*)",
       "Bash(PYTHONPATH=. python tests/test_ai_service_enhanced.py run)",
       "Bash(PYTHONPATH=. python -m pytest tests/test_ai_service_enhanced.py::TestAIService::test_organize_note_content_success -v)",
-      "Bash(PYTHONIOENCODING=utf-8 python test_performance.py)"
+      "Bash(PYTHONIOENCODING=utf-8 python test_performance.py)",
+      "Bash(npm run test:coverage:*)"
     ],
     "deny": [],
     "ask": []
