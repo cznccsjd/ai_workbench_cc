@@ -9,7 +9,7 @@ from sqlalchemy import and_, or_, func
 from datetime import datetime, timedelta
 import logging
 
-from models.kanban import Board, List, Card
+from models.kanban import Board, List as KanbanList, Card
 from models.user import User
 from schemas.kanban import (
     BoardCreate, BoardUpdate, BoardStats,
@@ -79,9 +79,9 @@ class KanbanService:
                 return None
 
             # 预加载列表和卡片数据
-            board.lists = db.query(List).filter(
-                and_(List.board_id == board_id, List.is_archived == False)
-            ).order_by(List.position).all()
+            board.lists = db.query(KanbanList).filter(
+                and_(KanbanList.board_id == board_id, KanbanList.is_archived == False)
+            ).order_by(KanbanList.position).all()
 
             for lst in board.lists:
                 lst.cards = db.query(Card).filter(
@@ -136,7 +136,7 @@ class KanbanService:
             board.updated_at = datetime.utcnow()
 
             # 同时归档所有列表和卡片
-            lists = db.query(List).filter(List.board_id == board_id).all()
+            lists = db.query(KanbanList).filter(KanbanList.board_id == board_id).all()
             for lst in lists:
                 lst.is_archived = True
                 # 归档列表下的所有卡片
@@ -163,8 +163,8 @@ class KanbanService:
                 return None
 
             # 获取看板下所有列表ID
-            list_ids = db.query(List.id).filter(
-                and_(List.board_id == board_id, List.is_archived == False)
+            list_ids = db.query(KanbanList.id).filter(
+                and_(KanbanList.board_id == board_id, KanbanList.is_archived == False)
             ).subquery()
 
             # 统计卡片总数
@@ -217,7 +217,7 @@ class KanbanService:
 
     # ===== 列表相关方法 =====
 
-    def create_list(self, db: Session, user_id: str, list_data: ListCreate) -> List:
+    def create_list(self, db: Session, user_id: str, list_data: ListCreate) -> Optional[KanbanList]:
         """创建新列表"""
         try:
             # 验证看板权限
@@ -229,9 +229,9 @@ class KanbanService:
                 raise ValueError("看板不存在或无权限")
 
             # 计算新列表的位置
-            max_position = db.query(func.max(List.position)).filter(List.board_id == list_data.board_id).scalar() or 0
+            max_position = db.query(func.max(KanbanList.position)).filter(KanbanList.board_id == list_data.board_id).scalar() or 0
 
-            lst = List(
+            lst = KanbanList(
                 board_id=list_data.board_id,
                 name=list_data.name,
                 description=list_data.description,
@@ -242,7 +242,7 @@ class KanbanService:
             db.commit()
             db.refresh(lst)
 
-            logger.info(f"List created: {lst.id} for board {list_data.board_id}")
+            logger.info(f"KanbanList created: {lst.id} for board {list_data.board_id}")
             return lst
 
         except Exception as e:
@@ -250,11 +250,11 @@ class KanbanService:
             logger.error(f"Failed to create list: {str(e)}")
             raise
 
-    def update_list(self, db: Session, list_id: str, user_id: str, list_data: ListUpdate) -> Optional[List]:
+    def update_list(self, db: Session, list_id: str, user_id: str, list_data: ListUpdate) -> Optional[KanbanList]:
         """更新列表信息"""
         try:
-            lst = db.query(List).join(Board).filter(
-                and_(List.id == list_id, Board.user_id == user_id)
+            lst = db.query(KanbanList).join(Board).filter(
+                and_(KanbanList.id == list_id, Board.user_id == user_id)
             ).first()
 
             if not lst:
@@ -269,7 +269,7 @@ class KanbanService:
             db.commit()
             db.refresh(lst)
 
-            logger.info(f"List updated: {list_id}")
+            logger.info(f"KanbanList updated: {list_id}")
             return lst
 
         except Exception as e:
@@ -280,8 +280,8 @@ class KanbanService:
     def delete_list(self, db: Session, list_id: str, user_id: str) -> bool:
         """删除列表"""
         try:
-            lst = db.query(List).join(Board).filter(
-                and_(List.id == list_id, Board.user_id == user_id)
+            lst = db.query(KanbanList).join(Board).filter(
+                and_(KanbanList.id == list_id, Board.user_id == user_id)
             ).first()
 
             if not lst:
@@ -295,7 +295,7 @@ class KanbanService:
             db.query(Card).filter(Card.list_id == list_id).update({"is_archived": True})
 
             db.commit()
-            logger.info(f"List deleted (archived): {list_id}")
+            logger.info(f"KanbanList deleted (archived): {list_id}")
             return True
 
         except Exception as e:
@@ -309,8 +309,8 @@ class KanbanService:
         """创建新卡片"""
         try:
             # 验证列表权限（通过看板验证）
-            lst = db.query(List).join(Board).filter(
-                and_(List.id == card_data.list_id, Board.user_id == user_id)
+            lst = db.query(KanbanList).join(Board).filter(
+                and_(KanbanList.id == card_data.list_id, Board.user_id == user_id)
             ).first()
 
             if not lst:
@@ -347,7 +347,7 @@ class KanbanService:
     def get_card(self, db: Session, card_id: str, user_id: str) -> Optional[Card]:
         """获取卡片详情"""
         try:
-            card = db.query(Card).join(List).join(Board).filter(
+            card = db.query(Card).join(KanbanList).join(Board).filter(
                 and_(Card.id == card_id, Board.user_id == user_id)
             ).first()
 
@@ -360,7 +360,7 @@ class KanbanService:
     def update_card(self, db: Session, card_id: str, user_id: str, card_data: CardUpdate) -> Optional[Card]:
         """更新卡片信息"""
         try:
-            card = db.query(Card).join(List).join(Board).filter(
+            card = db.query(Card).join(KanbanList).join(Board).filter(
                 and_(Card.id == card_id, Board.user_id == user_id)
             ).first()
 
@@ -394,7 +394,7 @@ class KanbanService:
     def delete_card(self, db: Session, card_id: str, user_id: str) -> bool:
         """删除卡片"""
         try:
-            card = db.query(Card).join(List).join(Board).filter(
+            card = db.query(Card).join(KanbanList).join(Board).filter(
                 and_(Card.id == card_id, Board.user_id == user_id)
             ).first()
 
@@ -418,7 +418,7 @@ class KanbanService:
         """移动卡片"""
         try:
             # 验证权限
-            source_card = db.query(Card).join(List).join(Board).filter(
+            source_card = db.query(Card).join(KanbanList).join(Board).filter(
                 and_(Card.id.in_(
                     db.query(Card.id).filter(Card.list_id == move_data.source_list_id)
                 ), Board.user_id == user_id)
@@ -428,8 +428,8 @@ class KanbanService:
                 return None
 
             # 验证目标列表权限
-            target_list = db.query(List).join(Board).filter(
-                and_(List.id == move_data.target_list_id, Board.user_id == user_id)
+            target_list = db.query(KanbanList).join(Board).filter(
+                and_(KanbanList.id == move_data.target_list_id, Board.user_id == user_id)
             ).first()
 
             if not target_list:
@@ -479,7 +479,7 @@ class KanbanService:
         """批量更新卡片"""
         try:
             # 验证权限和卡片存在性
-            cards = db.query(Card).join(List).join(Board).filter(
+            cards = db.query(Card).join(KanbanList).join(Board).filter(
                 and_(Card.id.in_(bulk_data.card_ids), Board.user_id == user_id)
             ).all()
 
@@ -512,15 +512,15 @@ class KanbanService:
         """批量移动卡片"""
         try:
             # 验证目标列表权限
-            target_list = db.query(List).join(Board).filter(
-                and_(List.id == bulk_data.target_list_id, Board.user_id == user_id)
+            target_list = db.query(KanbanList).join(Board).filter(
+                and_(KanbanList.id == bulk_data.target_list_id, Board.user_id == user_id)
             ).first()
 
             if not target_list:
                 raise ValueError("目标列表不存在或无权限")
 
             # 验证卡片权限
-            cards = db.query(Card).join(List).join(Board).filter(
+            cards = db.query(Card).join(KanbanList).join(Board).filter(
                 and_(Card.id.in_(bulk_data.card_ids), Board.user_id == user_id)
             ).all()
 
@@ -552,7 +552,7 @@ class KanbanService:
     def search_cards(self, db: Session, user_id: str, search_request: SearchRequest) -> SearchResponse:
         """搜索卡片"""
         try:
-            query = db.query(Card).join(List).join(Board).filter(Board.user_id == user_id)
+            query = db.query(Card).join(KanbanList).join(Board).filter(Board.user_id == user_id)
 
             # 应用搜索条件
             if search_request.query:
@@ -566,7 +566,7 @@ class KanbanService:
 
             # 限制看板范围
             if search_request.board_id:
-                query = query.filter(List.board_id == search_request.board_id)
+                query = query.filter(KanbanList.board_id == search_request.board_id)
 
             # 是否包含已归档内容
             if not search_request.include_archived:
@@ -587,11 +587,11 @@ class KanbanService:
     def filter_cards(self, db: Session, user_id: str, filter_data: CardFilter, board_id: Optional[str] = None) -> List[Card]:
         """过滤卡片"""
         try:
-            query = db.query(Card).join(List).join(Board).filter(Board.user_id == user_id)
+            query = db.query(Card).join(KanbanList).join(Board).filter(Board.user_id == user_id)
 
             # 限制看板范围
             if board_id:
-                query = query.filter(List.board_id == board_id)
+                query = query.filter(KanbanList.board_id == board_id)
             elif filter_data.list_ids:
                 query = query.filter(Card.list_id.in_(filter_data.list_ids))
 
