@@ -4,6 +4,10 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { useAIStream, useSimpleAIStream } from '../useAIStream';
+import { getTextEncoder, initializeTextEncoderPolyfill } from '@/lib/utils/textEncoder';
+
+// 初始化polyfill
+initializeTextEncoderPolyfill();
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -18,15 +22,16 @@ global.AbortController = jest.fn(() => ({
 describe('useAIStream', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const encoder = getTextEncoder();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       body: {
         getReader: () => ({
           read: jest
             .fn()
-            .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"content":"Hello"}\n\n') })
-            .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"content":" World"}\n\n') })
-            .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+            .mockResolvedValueOnce({ done: false, value: encoder.encode('data: {"content":"Hello"}\n\n') })
+            .mockResolvedValueOnce({ done: false, value: encoder.encode('data: {"content":" World"}\n\n') })
+            .mockResolvedValueOnce({ done: false, value: encoder.encode('data: [DONE]\n\n') })
             .mockResolvedValueOnce({ done: true, value: undefined }),
         }),
       },
@@ -115,14 +120,15 @@ describe('useAIStream', () => {
 describe('useSimpleAIStream', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const encoder = getTextEncoder();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       body: {
         getReader: () => ({
           read: jest
             .fn()
-            .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: {"content":"Test"}\n\n') })
-            .mockResolvedValueOnce({ done: false, value: new TextEncoder().encode('data: [DONE]\n\n') })
+            .mockResolvedValueOnce({ done: false, value: encoder.encode('data: {"content":"Test"}\n\n') })
+            .mockResolvedValueOnce({ done: false, value: encoder.encode('data: [DONE]\n\n') })
             .mockResolvedValueOnce({ done: true, value: undefined }),
         }),
       },

@@ -4,6 +4,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { Message } from '@/types/ai';
+import { getTextDecoder } from '@/lib/utils/textEncoder';
 
 interface StreamOptions {
   onChunk?: (chunk: string) => void;
@@ -53,7 +54,7 @@ export function useAIStream(): UseAIStreamReturn {
         throw new Error('Response body is not available');
       }
 
-      const decoder = new TextDecoder();
+      const decoder = getTextDecoder();
       let fullResponse = '';
 
       while (true) {
@@ -131,20 +132,23 @@ export function useSimpleAIStream() {
   const [isStreaming, setIsStreaming] = useState(false);
   const { startStreaming, stopStreaming, error } = useAIStream();
 
-  const streamMessage = useCallback(async (message: string) => {
+  const streamMessage = useCallback(async (message: string, options?: StreamOptions) => {
     setStreamingContent('');
     setIsStreaming(true);
 
     await startStreaming(message, {
       onChunk: (chunk) => {
         setStreamingContent(prev => prev + chunk);
+        options?.onChunk?.(chunk);
       },
-      onComplete: () => {
+      onComplete: (fullResponse) => {
         setIsStreaming(false);
+        options?.onComplete?.(fullResponse);
       },
       onError: (error) => {
         console.error('Stream error:', error);
         setIsStreaming(false);
+        options?.onError?.(error);
       },
     });
   }, [startStreaming]);

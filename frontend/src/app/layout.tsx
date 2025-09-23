@@ -4,6 +4,14 @@ import "./globals.css";
 import Navigation from "@/components/navigation/Navigation";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { initializeTextEncoderPolyfill } from "@/lib/utils/textEncoder";
+import TextEncoderInit from "@/components/utils/TextEncoderInit";
+
+// 初始化TextEncoder polyfill
+if (typeof window === 'undefined') {
+  // 服务端初始化
+  initializeTextEncoderPolyfill();
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +41,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
       >
         <ThemeProvider>
+          <TextEncoderInit />
           <div className="flex items-center justify-between p-4 border-b border-border bg-card">
             <Navigation />
             <ThemeSwitcher />
