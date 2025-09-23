@@ -39,7 +39,11 @@
       "Bash(git fetch:*)",
       "Bash(pytest:*)",
       "Bash(git rm:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(venvScriptsactivate)",
+      "Bash(chmod:*)",
+      "Bash(.\\venv\\Scripts\\activate.bat)",
+      "Bash(scripts/check-environment.bat)"
     ],
     "deny": [],
     "ask": []
