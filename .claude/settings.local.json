@@ -43,7 +43,19 @@
       "Bash(venvScriptsactivate)",
       "Bash(chmod:*)",
       "Bash(.\\venv\\Scripts\\activate.bat)",
-      "Bash(scripts/check-environment.bat)"
+      "Bash(scripts/check-environment.bat)",
+      "Bash(.venvScriptsactivate.bat)",
+      "Bash(DATABASE_URL=\"sqlite:///./test_boards.db\" python main.py)",
+      "Bash(DATABASE_URL=\"sqlite:///./test_boards.db\" python -m pytest tests/ -v --tb=short)",
+      "WebFetch(domain:localhost)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(git log:*)",
+      "Bash(cat:*)",
+      "Bash(sqlite3:*)",
+      "Bash(PYTHONPATH=. python tests/test_ai_service_enhanced.py run)",
+      "Bash(PYTHONPATH=. python -m pytest tests/test_ai_service_enhanced.py::TestAIService::test_organize_note_content_success -v)",
+      "Bash(PYTHONIOENCODING=utf-8 python test_performance.py)"
     ],
     "deny": [],
     "ask": []
