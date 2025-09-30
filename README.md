@@ -41,9 +41,10 @@ AI Workbench is a next-generation productivity tool designed to integrate AI cap
 
 ## Tech Stack
 
--   **Backend**: Python 3.11+, FastAPI
+-   **Backend**: Python 3.12+, FastAPI
 -   **Frontend**: React (Next.js)
 -   **Database**: PostgreSQL (Production), SQLite (Development)
+-   **Package Manager**: PDM (Python Development Master)
 -   **Testing**: Pytest, Playwright
 -   **AI Integration**: Kimi (initially)
 
@@ -51,9 +52,10 @@ AI Workbench is a next-generation productivity tool designed to integrate AI cap
 
 ### Prerequisites
 
--   Python 3.11+
+-   Python 3.12+
 -   Node.js 20.x+
 -   Git
+-   PDM (Python Development Master) - Optional, but recommended
 
 ### Installation
 
@@ -64,13 +66,34 @@ AI Workbench is a next-generation productivity tool designed to integrate AI cap
     ```
 
 2.  **Setup Backend (Python):**
+
+    **Option 1: Using PDM (Recommended)**
+    ```bash
+    # Install PDM if you haven't already
+    pip install pdm
+
+    # Navigate to backend directory
+    cd backend
+
+    # Install dependencies
+    pdm install
+
+    # Run backend
+    pdm run uvicorn main:app --reload
+    ```
+
+    **Option 2: Using pip (Traditional)**
     ```bash
     # Create and activate a virtual environment
     python3 -m venv venv
     source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
     # Install dependencies
-    pip install -r requirements.txt
+    pip install -r backend/requirements.txt
+
+    # Run backend
+    cd backend
+    uvicorn main:app --reload
     ```
 
 3.  **Setup Frontend (Node.js):**
@@ -92,8 +115,16 @@ AI Workbench is a next-generation productivity tool designed to integrate AI cap
 ### Running the Application
 
 1.  **Start the Backend Server:**
+
+    **With PDM:**
     ```bash
-    # From the root directory
+    cd backend
+    pdm run uvicorn main:app --reload
+    ```
+
+    **With pip:**
+    ```bash
+    # From the backend directory (with venv activated)
     uvicorn main:app --reload
     ```
 

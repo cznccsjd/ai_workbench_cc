@@ -73,7 +73,13 @@ docs/_build/
 # Virtual Environment
 venv/
 venv.bak/
-.venv
+.venv/
+
+# PDM
+__pypackages__/
+.pdm.toml
+.pdm-python
+.pdm-build/
 
 # VSCode
 .vscode/

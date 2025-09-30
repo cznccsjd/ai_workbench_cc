@@ -6,10 +6,12 @@
 
 ### 🐍 Python虚拟环境铁律
 - [ ] **强制要求**: 所有Python相关操作必须在虚拟环境中进行
-- [ ] **激活命令**: `venv\Scripts\activate` (Windows) 或 `source venv/bin/activate` (Linux/Mac)
-- [ ] **验证方法**: 命令行提示符显示`(venv)`前缀
-- [ ] **适用范围**: pip install、pytest、python运行、依赖管理等所有Python操作
-- [ ] **检查标准**: 任何Python命令前必须确认虚拟环境已激活
+- [ ] **包管理工具**: 优先使用PDM（Python Development Master），也可使用传统pip+venv
+- [ ] **PDM激活**: `pdm run <command>` 或进入backend目录后使用`pdm shell`
+- [ ] **传统venv激活**: `venv\Scripts\activate` (Windows) 或 `source venv/bin/activate` (Linux/Mac)
+- [ ] **验证方法**: PDM自动管理虚拟环境；传统方式需确认命令行提示符显示`(venv)`前缀
+- [ ] **适用范围**: 所有Python依赖安装、测试、运行等操作
+- [ ] **检查标准**: 任何Python命令前必须确认在正确的环境中
 
 ### 🌿 Git管理铁律
 - [ ] **分支策略**: 功能开发必须在`feature/xxx`分支，禁止直接向`main`分支提交
@@ -89,7 +91,15 @@
     - **`.gitignore`**: 项目助理已创建初始 `.gitignore` 文件，后续将持续维护。
 
 2.  **后端开发 (Python)**:
-    - **虚拟环境**: 项目启动时必须创建并激活Python虚拟环境（如 `venv`）。所有依赖包通过 `requirements.txt` 管理。
+    - **包管理**: 本项目使用**PDM (Python Development Master)**作为包管理工具。PDM提供更快的依赖解析、精确的锁文件和更好的依赖管理。
+    - **虚拟环境**: PDM会自动在`backend/.venv`目录创建项目专属虚拟环境。也可使用传统`venv`方式。
+    - **依赖管理**:
+        - 添加依赖: `pdm add <package>`
+        - 安装依赖: `pdm install`
+        - 更新锁文件: `pdm lock`
+        - 导出requirements.txt: `pdm export -o requirements.txt --without-hashes`
+        - 兼容性: 保留`requirements.txt`以支持pip用户
+    - **运行命令**: 使用`pdm run <command>`运行Python脚本，如`pdm run pytest`
     - **TDD**: 严格执行测试驱动开发。先编写`pytest`测试用例，再实现业务逻辑。
     - **日志**: 在关键业务流程、异常捕获处添加结构化日志。
 

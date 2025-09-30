@@ -3,7 +3,8 @@
 ## 📋 项目架构概述
 
 **前端**: Next.js + TypeScript + Tailwind CSS
-**后端**: FastAPI + Python + PostgreSQL + Redis
+**后端**: FastAPI + Python + PDM + PostgreSQL + Redis
+**包管理**: PDM (Python Development Master) - 现代化Python包管理
 **特点**: 完整的前后端分离架构，5大核心功能模块已完成
 
 ---
@@ -98,17 +99,25 @@ PYTHON_VERSION=3.12
 web: uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
-#### 2.4 requirements.txt 依赖管理
-确保项目根目录包含完整的依赖列表：
-```txt
-fastapi>=0.104.1
-uvicorn[standard]>=0.24.0
-sqlalchemy>=2.0.23
-psycopg2-binary>=2.9.9
-redis>=5.0.1
-python-multipart>=0.0.6
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
+#### 2.4 依赖管理（PDM）
+
+本项目使用**PDM (Python Development Master)**管理依赖。Railway的Nixpacks会自动检测并支持PDM。
+
+**部署文件**：
+- `pyproject.toml` - PDM项目配置
+- `pdm.lock` - 锁定的依赖版本
+- `requirements.txt` - 导出的pip兼容文件（备份）
+
+**Railway自动检测顺序**：
+1. 检测到`pdm.lock` → 执行 `pdm install --prod`
+2. 如无pdm.lock但有`requirements.txt` → 执行 `pip install -r requirements.txt`
+
+**推荐配置**：确保backend目录包含：
+```
+backend/
+├── pyproject.toml    # PDM配置
+├── pdm.lock          # 锁文件
+└── requirements.txt  # 导出的备份
 ```
 
 ---
