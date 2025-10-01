@@ -783,9 +783,14 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 复制依赖文件并安装 (支持PDM)
+COPY pyproject.toml pdm.lock* ./
+RUN pip install --no-cache-dir pdm && \
+    pdm install --prod --no-lock --no-editable
+
+# 备用方案：使用requirements.txt
+# COPY requirements.txt .
+# RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY src/ ./src/

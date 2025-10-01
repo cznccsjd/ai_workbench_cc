@@ -78,9 +78,14 @@ frontend/src/components/ai-notepad/
 
 ### 1. 安装依赖
 
-**后端依赖:**
+**后端依赖 (推荐使用PDM):**
 ```bash
-pip install -r requirements.txt
+# 方式1: 使用PDM (推荐)
+cd backend
+pdm install
+
+# 方式2: 使用传统pip
+pip install -r backend/requirements.txt
 ```
 
 **前端依赖:**
