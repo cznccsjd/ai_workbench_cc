@@ -43,7 +43,12 @@
       "Bash(venvScriptsactivate)",
       "Bash(chmod:*)",
       "Bash(.\\venv\\Scripts\\activate.bat)",
-      "Bash(scripts/check-environment.bat)"
+      "Bash(scripts/check-environment.bat)",
+      "Bash(gh pr create --title \"docs(deployment): add comprehensive Vercel + Railway deployment guide\" --body \"$(cat <<''EOF''\n## Summary\n\n- 新增完整的 Vercel + Railway 部署方案文档 (DEPLOYMENT.md)\n- 提供详细的前后端部署配置和环境变量设置\n- 包含分步部署指南、成本分析和替代方案对比\n- 添加部署后验证清单和故障排除指南\n\n## 主要内容\n\n### 📋 文档结构\n- 项目架构概述和技术可行性评估\n- Vercel (前端) 和 Railway (后端) 详细配置方案  \n- 快速部署步骤 (总计约6分钟完成部署)\n- 成本分析和替代方案对比\n- 监控维护和故障排除指南\n\n### 🔧 核心配置\n- **前端**: vercel.json 配置文件和环境变量设置\n- **后端**: railway.json 配置、Procfile 和依赖管理\n- **数据库**: PostgreSQL 和 Redis 配置说明\n\n### 💰 成本优势  \n- 个人项目完全免费使用\n- Vercel: 100GB/月带宽 + 6000分钟/月构建时间\n- Railway: $5免费额度/月，包含PostgreSQL服务\n\n## Test Plan\n\n- [x] 文档格式符合项目标准\n- [x] 内容结构清晰，技术细节准确\n- [x] 包含完整的配置示例和环境变量\n- [x] 提供详细的部署验证清单\n- [x] 遵循 Conventional Commits 提交规范\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\nEOF\n)\" --base develop)",
+      "WebSearch",
+      "Bash(pdm config:*)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
