@@ -114,6 +114,7 @@ export interface CardUpdate {
 
 // ===== 拖拽操作接口 =====
 export interface CardMoveRequest {
+  card_id: string;
   source_list_id: string;
   target_list_id: string;
   new_position: number;
